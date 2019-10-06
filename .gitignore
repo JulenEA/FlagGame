@@ -4,6 +4,9 @@
 [Bb]uild/
 [Bb]uilds/
 Assets/AssetStoreTools*
+Flag Game/Assets/Photon*
+Flag Game/Assets/Character_Elf*
+
 
 # Visual Studio cache directory
 .vs/
