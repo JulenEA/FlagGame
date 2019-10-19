@@ -125,17 +125,37 @@ public class PlayerMovement : MonoBehaviourPunCallbacks
                 {
                     //Hay que pasarle parámetros a la bala de networking
                     //[0] -> BalaTeam
-                    bala = PhotonNetwork.Instantiate(balaGO.name, cañonGO.transform.position, newRotation, 0, new object[] { playerSettings.GetPlayerTeam() }) as GameObject;
+                    //bala = PhotonNetwork.Instantiate(balaGO.name, cañonGO.transform.position, newRotation, 0, new object[] { playerSettings.GetPlayerTeam() }) as GameObject;
+
+                    //Vamos a intentar Instanciar con RPC
+                    Debug.Log("Antes del disparo");
+                    photonView.RPC("InstantiateBullet", RpcTarget.All, new object[] { newRotation , getRayCastPoint(Input.mousePosition) });
+
                 }
 
                 //Esto se hace para los dos porque el transform de la bala ya se está observando.
-                bala.GetComponent<Rigidbody>().AddForce(transform.forward * playerSettings.GetBulletVelocity());
-                bala.transform.Rotate(new Vector3(90f, 0f, 0f));
+                
                 //Destroy(bala, playerSettings.GetBulletDestroyingTime());
 
                 coolDownAccumulated = 0f;
             } 
         }
+    }
+
+    [PunRPC]
+    public void InstantiateBullet(Quaternion pNewRotation, Vector3 pTargetPosition)
+    {
+
+
+        Debug.Log("Disparo");
+        GameObject bala = Instantiate(balaGO, cañonGO.transform.position, pNewRotation) as GameObject;
+        bala.transform.Rotate(new Vector3(90f, 0f, 0f));
+
+        //Este funciona bien, pero hay que tener en cuenta que es 3D y por lo tanto va hacia abajo. Habría que controlar eso si se usa este método.
+        //bala.GetComponent<Rigidbody>().AddForce((pTargetPosition - bala.transform.position).normalized * playerSettings.GetBulletVelocity());
+        bala.GetComponent<Rigidbody>().AddForce(bala.transform.up * playerSettings.GetBulletVelocity());
+        bala.GetComponent<BalaSettings>().SetBalaTeam(playerSettings.GetPlayerTeam());
+
     }
 
     private void MobileUpdate()
@@ -227,15 +247,7 @@ public class PlayerMovement : MonoBehaviourPunCallbacks
         
     }
 
-    [PunRPC]
-    public void InstantiateBullet(Quaternion newRotation)
-    {
-        GameObject bala = Instantiate(balaGO, cañonGO.transform.position, newRotation) as GameObject;
-        bala.GetComponent<BalaMovement>().SetBulletTargetPositon(new Vector3(0, 0, 0));
-        bala.transform.Rotate(new Vector3(90f, 0f, 0f));
-        bala.GetComponent<Rigidbody>().AddForce(transform.forward * playerSettings.GetBulletVelocity());
-        bala.GetComponent<BalaSettings>().SetBalaTeam(playerSettings.GetPlayerTeam());
-    }
+    
 
     private bool IsPointerOverUIObject()
     {

@@ -11,19 +11,23 @@ public class BalaMovement : MonoBehaviourPunCallbacks
     Vector3 TargetPosition;
 
     BalaSettings balaSettings;
-        
-   
+
+
 
     void Awake()
     {
         balaSettings = GetComponent<BalaSettings>();
+
+        /* Hay que comentar esto si la bala no se instancia con PhotonNetwork, y sí con RPC
+         * 
         int balaTeam = (int) photonView.InstantiationData[0];
         balaSettings.SetBalaTeam(balaTeam);
+        */
     }
 
     private void FixedUpdate()
-    {   
-        
+    {
+
     }
 
     private void OnTriggerEnter(Collider other)
@@ -32,13 +36,8 @@ public class BalaMovement : MonoBehaviourPunCallbacks
         if (other.gameObject.tag.Equals("Wall"))
         {
             Debug.Log("Destroying bullet");
-            if (!PhotonNetwork.IsConnected)
-            {
-                Destroy(gameObject);
-            }else if(photonView.IsMine)
-            {
-                PhotonNetwork.Destroy(gameObject);
-            }
+            Destroy(gameObject);
+            
         }
         else if (other.gameObject.tag.Equals("Player"))
         {
@@ -56,14 +55,8 @@ public class BalaMovement : MonoBehaviourPunCallbacks
                 }
                 else
                 {
-                    if (this.photonView.IsMine)
-                    {
-                        PhotonNetwork.Destroy(this.gameObject);
-                    }
-                    if (other.gameObject.GetPhotonView().IsMine)
-                    {
-                        PhotonNetwork.Destroy(other.gameObject);
-                    }
+                    Destroy(gameObject);
+                    PhotonNetwork.Destroy(other.gameObject);
                 }
 
             }
@@ -75,5 +68,11 @@ public class BalaMovement : MonoBehaviourPunCallbacks
     public void SetBulletTargetPositon(Vector3 pTargetPosition)
     {
         TargetPosition = pTargetPosition;
+    }
+
+    [PunRPC]
+    public void DestroyBulletRpc(GameObject pBullet)
+    {
+        Destroy(pBullet);
     }
 }
